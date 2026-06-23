@@ -9,9 +9,12 @@ export function Base64Client() {
   const encode = () => {
     try {
       const bytes = new TextEncoder().encode(input);
-      let binary = "";
-      bytes.forEach((b) => (binary += String.fromCharCode(b)));
-      setOutput(btoa(binary));
+      // Use standard base64 encoding that works with UTF-8
+      let binaryStr = "";
+      for (let i = 0; i < bytes.length; i++) {
+        binaryStr += String.fromCharCode(bytes[i]);
+      }
+      setOutput(btoa(binaryStr));
     } catch {
       setOutput("编码失败");
     }
@@ -19,8 +22,11 @@ export function Base64Client() {
 
   const decode = () => {
     try {
-      const binary = atob(input);
-      const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+      const binaryStr = atob(input.trim());
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
       setOutput(new TextDecoder().decode(bytes));
     } catch {
       setOutput("解码失败，请检查输入是否为有效的Base64");
@@ -36,7 +42,7 @@ export function Base64Client() {
         <button onClick={decode} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">
           🔓 解码
         </button>
-        <button onClick={() => navigator.clipboard.writeText(output)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">
+        <button onClick={() => navigator.clipboard.writeText(output).catch(() => alert("复制失败，请手动复制"))} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">
           📋 复制
         </button>
         <button onClick={() => { setInput(""); setOutput(""); }} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">

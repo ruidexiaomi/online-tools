@@ -1,37 +1,34 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 
-// Simple MD5 implementation for browser (RFC 1321)
+// Correct MD5 implementation for browser (RFC 1321)
 function md5(str: string): string {
-  function rotateLeft(lValue: number, iShiftBits: number): number {
-    return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits));
-  }
-  function addUnsigned(lX: number, lY: number): number {
-    const lX8 = lX & 0x80000000;
-    const lY8 = lY & 0x80000000;
-    const lX4 = lX & 0x40000000;
-    const lY4 = lY & 0x40000000;
-    const lResult = (lX & 0x3fffffff) + (lY & 0x3fffffff);
-    return (lX4 & lY4) | (lResult ^ ((lX8 & lY8) | (~(lX4 ^ lY4) & (lX8 ^ lY8))));
-  }
-  function f(q: number, a: number, b: number, x: number, s: number, t: number): number {
-    return addUnsigned(rotateLeft(addUnsigned(addUnsigned(a, q), addUnsigned(x, t)), s), b);
+  function md5cmn(q: number, a: number, b: number, x: number, s: number, t: number): number {
+    return safeAdd(bitRol(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b);
   }
   function ff(a: number, b: number, c: number, d: number, x: number, s: number, t: number): number {
-    return f((b & c) | (~b & d), a, b, x, s, t);
+    return md5cmn((b & c) | (~b & d), a, b, x, s, t);
   }
   function gg(a: number, b: number, c: number, d: number, x: number, s: number, t: number): number {
-    return f((b & d) | (c & ~d), a, b, x, s, t);
+    return md5cmn((b & d) | (c & ~d), a, b, x, s, t);
   }
   function hh(a: number, b: number, c: number, d: number, x: number, s: number, t: number): number {
-    return f(b ^ c ^ d, a, b, x, s, t);
+    return md5cmn(b ^ c ^ d, a, b, x, s, t);
   }
   function ii(a: number, b: number, c: number, d: number, x: number, s: number, t: number): number {
-    return f(c ^ (b | ~d), a, b, x, s, t);
+    return md5cmn(c ^ (b | ~d), a, b, x, s, t);
+  }
+  function safeAdd(x: number, y: number): number {
+    const lsw = (x & 0xffff) + (y & 0xffff);
+    const msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+    return (msw << 16) | (lsw & 0xffff);
+  }
+  function bitRol(num: number, cnt: number): number {
+    return (num << cnt) | (num >>> (32 - cnt));
   }
 
-  const utf8Encode = (s: string): number[] => {
+  function utf8Encode(s: string): number[] {
     const bytes: number[] = [];
     for (let i = 0; i < s.length; i++) {
       let c = s.charCodeAt(i);
@@ -41,7 +38,7 @@ function md5(str: string): string {
       else { i++; c = 0x10000 + (((c & 0x3ff) << 10) | (s.charCodeAt(i) & 0x3ff)); bytes.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 0x3f), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f)); }
     }
     return bytes;
-  };
+  }
 
   const bytes = utf8Encode(str);
   const bitLen = bytes.length * 8;
@@ -89,7 +86,7 @@ function md5(str: string): string {
     c = ii(c, d, a, b, x[6], 15, 0xa3014314); b = ii(b, c, d, a, x[13], 21, 0x4e0811a1);
     a = ii(a, b, c, d, x[4], 6, 0xf7537e82); d = ii(d, a, b, c, x[11], 10, 0xbd3af235);
     c = ii(c, d, a, b, x[2], 15, 0x2ad7d2bb); b = ii(b, c, d, a, x[9], 21, 0xeb86d391);
-    a = addUnsigned(a, aa); b = addUnsigned(b, bb); c = addUnsigned(c, cc); d = addUnsigned(d, dd);
+    a = safeAdd(a, aa); b = safeAdd(b, bb); c = safeAdd(c, cc); d = safeAdd(d, dd);
   }
 
   const toHex = (n: number): string => {
@@ -114,9 +111,10 @@ export function Md5Client() {
   const [hash, setHash] = useState("");
   const [algo, setAlgo] = useState<"md5" | "sha256">("md5");
 
-  const generate = useCallback(async () => {
+  const generate = async (algorithm: "md5" | "sha256") => {
+    setAlgo(algorithm);
     if (!input.trim()) { setHash(""); return; }
-    if (algo === "md5") {
+    if (algorithm === "md5") {
       setHash(md5(input));
     } else {
       try {
@@ -125,28 +123,32 @@ export function Md5Client() {
         setHash("SHA-256 计算失败（需要HTTPS环境）");
       }
     }
-  }, [input, algo]);
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        <button onClick={() => { setAlgo("md5"); generate(); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${algo === "md5" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>MD5</button>
-        <button onClick={() => { setAlgo("sha256"); generate(); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${algo === "sha256" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>SHA-256</button>
+        <button onClick={() => generate("md5")} className={`px-4 py-2 rounded-lg text-sm font-medium ${algo === "md5" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>MD5</button>
+        <button onClick={() => generate("sha256")} className={`px-4 py-2 rounded-lg text-sm font-medium ${algo === "sha256" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>SHA-256</button>
         <button onClick={() => { setInput(""); setHash(""); }} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">🗑️ 清空</button>
       </div>
 
       <div>
-        <textarea value={input} onChange={(e) => setInput(e.target.value)}
-          onKeyUp={() => generate()}
-          placeholder="输入要计算哈希值的文本（自动计算）..."
+        <textarea value={input} onChange={(e) => { setInput(e.target.value); }}
+          placeholder="输入要计算哈希值的文本..."
           className="w-full h-40 p-4 border border-gray-200 rounded-xl font-mono text-sm focus:ring-2 focus:ring-blue-500 resize-none" spellCheck={false} />
+        <button onClick={() => generate(algo)} className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+          计算 {algo === "md5" ? "MD5" : "SHA-256"}
+        </button>
       </div>
 
       {hash && (
         <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
           <span className="text-sm text-gray-500">{algo === "md5" ? "MD5" : "SHA-256"}: </span>
           <span className="font-mono text-sm break-all">{hash}</span>
-          <button onClick={() => navigator.clipboard.writeText(hash)}
+          <button onClick={() => {
+            navigator.clipboard.writeText(hash).catch(() => alert("复制失败，请手动复制"));
+          }}
             className="ml-2 text-blue-600 text-sm hover:underline">复制</button>
         </div>
       )}

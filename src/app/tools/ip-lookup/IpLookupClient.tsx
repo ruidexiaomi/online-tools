@@ -70,7 +70,7 @@ export function IpLookupClient() {
           <span className="text-sm font-medium text-gray-700 min-w-[120px]">{label}</span>
           <span className="text-sm text-gray-900 break-all font-mono">{val}</span>
           {label === "公网IP地址" && val !== "无法获取（请检查网络）" && (
-            <button onClick={() => navigator.clipboard.writeText(val)}
+            <button onClick={() => navigator.clipboard.writeText(val).catch(() => alert("复制失败"))}
               className="text-blue-600 text-xs hover:underline sm:ml-auto">复制</button>
           )}
         </div>

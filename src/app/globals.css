@@ -1,23 +1,110 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --accent: #f59e0b;
+  --bg: #fafbff;
+  --surface: #ffffff;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --radius: 1rem;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+}
+
+* {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: linear-gradient(135deg, #fafbff 0%, #f0f4ff 50%, #faf5ff 100%);
+  color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC",
     "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
-/* Tool page prose styles */
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ===== Glass Card ===== */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ===== Gradient Text ===== */
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== Shimmer Animation ===== */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* ===== Float Animation ===== */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ===== Fade In Up ===== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* ===== Pulse Glow ===== */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  50% { box-shadow: 0 0 0 20px rgba(99, 102, 241, 0); }
+}
+.pulse-glow {
+  animation: pulseGlow 2s infinite;
+}
+
+/* ===== Grid Background ===== */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ===== Tool page prose styles ===== */
 .prose h1 {
   font-size: 1.5rem;
   font-weight: 700;
@@ -54,7 +141,7 @@ body {
   line-height: 1.75;
 }
 .prose a {
-  color: #2563eb;
+  color: #6366f1;
   text-decoration: underline;
 }
 .prose strong {
@@ -75,7 +162,7 @@ body {
   margin-bottom: 1rem;
 }
 .prose blockquote {
-  border-left: 3px solid #3b82f6;
+  border-left: 3px solid #6366f1;
   padding-left: 1rem;
   color: #6b7280;
   margin-bottom: 0.75rem;
@@ -83,4 +170,16 @@ body {
 .prose img {
   max-width: 100%;
   border-radius: 0.5rem;
+}
+
+/* ===== Input focus ring ===== */
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: none;
+  ring: 2px solid var(--primary);
+}
+
+/* ===== Custom selection ===== */
+::selection {
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--primary-dark);
 }

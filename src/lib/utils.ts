@@ -10,7 +10,7 @@ export function formatBytes(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-const SITE_URL = "https://你的域名.com";
+const SITE_URL = "https://soogongju.com";
 
 export function getSiteUrl(path: string = ""): string {
   return `${SITE_URL}${path}`;

@@ -2,6 +2,18 @@
 
 import { useState } from "react";
 
+// Sanitize URLs to prevent XSS
+function safeUrl(url: string): string {
+  const trimmed = url.trim();
+  const lower = trimmed.toLowerCase();
+  // Block javascript: and data: URIs
+  if (lower.startsWith("javascript:") || lower.startsWith("data:")) {
+    return "#blocked";
+  }
+  // Escape quotes in attribute values
+  return trimmed.replace(/"/g, "%22").replace(/'/g, "%27");
+}
+
 function simpleMdToHtml(md: string): string {
   let html = md
     .replace(/&/g, "&amp;")
@@ -24,9 +36,13 @@ function simpleMdToHtml(md: string): string {
   html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
   html = html.replace(/~~(.+?)~~/g, "<del>$1</del>");
 
-  // Links and Images
-  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="$2" />');
-  html = html.replace(/\[([^\]]*)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  // Links and Images (sanitize URLs)
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, url) =>
+    `<img alt="${alt}" src="${safeUrl(url)}" />`
+  );
+  html = html.replace(/\[([^\]]*)\]\(([^)]+)\)/g, (_, text, url) =>
+    `<a href="${safeUrl(url)}" target="_blank" rel="noopener noreferrer">${text}</a>`
+  );
 
   // Horizontal rule
   html = html.replace(/^---+$/gm, "<hr>");

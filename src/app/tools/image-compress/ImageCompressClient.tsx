@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { formatBytes } from "@/lib/utils";
 
 export function ImageCompressClient() {
@@ -8,7 +8,10 @@ export function ImageCompressClient() {
   const [compressed, setCompressed] = useState<{ src: string; size: number } | null>(null);
   const [quality, setQuality] = useState(80);
 
-  const compress = (file: File) => {
+  const fileRef = useRef<File | null>(null);
+
+  const compress = (file: File, q: number = quality) => {
+    fileRef.current = file;
     setOriginal({ src: URL.createObjectURL(file), size: file.size, name: file.name });
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -23,12 +26,19 @@ export function ImageCompressClient() {
           if (blob) {
             setCompressed({ src: URL.createObjectURL(blob), size: blob.size });
           }
-        }, file.type || "image/jpeg", quality / 100);
+        }, file.type || "image/jpeg", q / 100);
       };
       img.src = e.target?.result as string;
     };
     reader.readAsDataURL(file);
   };
+
+  // Recompress when quality changes
+  useEffect(() => {
+    if (fileRef.current) {
+      compress(fileRef.current, quality);
+    }
+  }, [quality]);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

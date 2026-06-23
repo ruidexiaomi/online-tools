@@ -32,7 +32,7 @@ export function JsonFormatterClient() {
   };
 
   const copyResult = () => {
-    navigator.clipboard.writeText(output || error);
+    navigator.clipboard.writeText(output || error).catch(() => alert("复制失败，请手动复制"));
   };
 
   const clearAll = () => {

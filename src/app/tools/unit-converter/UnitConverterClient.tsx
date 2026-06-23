@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 const CONVERSIONS = {
   length: {
@@ -97,17 +97,22 @@ export function UnitConverterClient() {
     return (base * toFactor).toFixed(6).replace(/\.?0+$/, "");
   }, [value, fromUnit, toUnit, type, conv]);
 
-  // Init units
   const unitNames = type === "temperature" ? Object.keys(conv.units) : Object.keys(conv.units as Record<string, number>);
-  if (!fromUnit && unitNames.length > 0) {
-    setTimeout(() => { setFromUnit(unitNames[0]); setToUnit(unitNames[1] || unitNames[0]); }, 0);
-  }
+
+  // Init units on mount and on type change
+  useEffect(() => {
+    if (unitNames.length > 0) {
+      setFromUnit(unitNames[0]);
+      setToUnit(unitNames[1] || unitNames[0]);
+    }
+  }, [type]);
+  // Note: unitNames derived from type, intentionally only trigger on type change
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-3">
         {Object.entries(CONVERSIONS).map(([key, c]) => (
-          <button key={key} onClick={() => { setType(key as ConvKey); setFromUnit(""); setToUnit(""); }}
+          <button key={key} onClick={() => { setType(key as ConvKey); }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${type === key ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
             {c.label}
           </button>

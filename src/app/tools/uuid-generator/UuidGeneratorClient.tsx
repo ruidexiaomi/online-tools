@@ -24,7 +24,7 @@ export function UuidGeneratorClient() {
     }));
   };
 
-  const copyAll = () => navigator.clipboard.writeText(uuids.join("\n"));
+  const copyAll = () => navigator.clipboard.writeText(uuids.join("\n")).catch(() => alert("复制失败，请手动复制"));
 
   return (
     <div className="space-y-4">
@@ -53,7 +53,7 @@ export function UuidGeneratorClient() {
           {uuids.map((uuid, i) => (
             <div key={i} className="px-4 py-2 font-mono text-sm border-b border-gray-100 last:border-0 hover:bg-gray-50 flex justify-between">
               <span>{uuid}</span>
-              <button onClick={() => navigator.clipboard.writeText(uuid)} className="text-blue-600 text-xs hover:underline">复制</button>
+              <button onClick={() => navigator.clipboard.writeText(uuid).catch(() => alert("复制失败"))} className="text-blue-600 text-xs hover:underline">复制</button>
             </div>
           ))}
         </div>

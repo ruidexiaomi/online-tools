@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     "Base64编码",
     "时间戳转换",
   ],
-  metadataBase: new URL("https://你的域名.com"),
+  metadataBase: new URL("https://soogongju.com"),
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
@@ -42,7 +42,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
-      <body className="min-h-screen flex flex-col bg-gray-50 antialiased">
+      <body className="min-h-screen flex flex-col antialiased">
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

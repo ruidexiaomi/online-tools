@@ -1,55 +1,41 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import QRCode from "qrcode";
 
 export function QrcodeClient() {
   const [text, setText] = useState("");
   const [size, setSize] = useState(200);
   const [color, setColor] = useState("#000000");
   const [bgColor, setBgColor] = useState("#ffffff");
+  const [error, setError] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const generateQR = useCallback(() => {
     if (!text.trim() || !canvasRef.current) return;
+    setError("");
+
     const canvas = canvasRef.current;
     canvas.width = size;
     canvas.height = size;
-    const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, size, size);
 
-    // Simple QR-like pattern (visual placeholder — in production use a QR library)
-    const data = text.trim();
-    let hash = 0;
-    for (let i = 0; i < data.length; i++) {
-      hash = (hash << 5) - hash + data.charCodeAt(i);
-      hash |= 0;
-    }
-    const seed = Math.abs(hash);
-    const modSize = Math.max(8, Math.floor(size / 8));
-    const cellSize = size / modSize;
-
-    ctx.fillStyle = color;
-    for (let row = 0; row < modSize; row++) {
-      for (let col = 0; col < modSize; col++) {
-        // Deterministic pattern from hash
-        const val = (seed * (row * 31 + col * 17 + 13)) % 100;
-        if (val > 40) {
-          ctx.fillRect(col * cellSize, row * cellSize, cellSize * 0.9, cellSize * 0.9);
-        }
-      }
-    }
-
-    // Add corner markers (QR-style)
-    const m = cellSize * 2;
-    ctx.fillStyle = color;
-    // Top-left
-    ctx.fillRect(cellSize * 0.5, cellSize * 0.5, m, m);
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(cellSize * 1, cellSize * 1, m - cellSize, m - cellSize);
-    ctx.fillStyle = color;
-    ctx.fillRect(cellSize * 1.25, cellSize * 1.25, m - cellSize * 1.5, m - cellSize * 1.5);
+    QRCode.toCanvas(canvas, text.trim(), {
+      width: size,
+      margin: 2,
+      color: { dark: color, light: bgColor },
+      errorCorrectionLevel: "M",
+    }).catch((err: Error) => {
+      setError("生成失败: " + err.message);
+    });
   }, [text, size, color, bgColor]);
+
+  // Auto-generate on text change
+  useEffect(() => {
+    if (text.trim()) {
+      const timer = setTimeout(generateQR, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [text, generateQR]);
 
   const download = () => {
     if (!canvasRef.current) return;
@@ -82,10 +68,12 @@ export function QrcodeClient() {
         <button onClick={download} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">⬇ 下载</button>
       </div>
       <div className="flex justify-center p-8 bg-gray-50 rounded-xl border border-gray-200 min-h-[300px] items-center">
-        {text.trim() ? (
+        {error ? (
+          <span className="text-red-500 text-sm">{error}</span>
+        ) : text.trim() ? (
           <canvas ref={canvasRef} className="border border-gray-300 rounded-lg shadow-sm" />
         ) : (
-          <span className="text-gray-400">输入内容后点击"生成"按钮</span>
+          <span className="text-gray-400">输入内容后自动生成二维码</span>
         )}
       </div>
     </div>

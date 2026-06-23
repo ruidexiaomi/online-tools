@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 function hexToRgb(hex: string): [number, number, number] | null {
   const m = hex.replace("#", "").match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
@@ -47,8 +47,11 @@ export function ColorConverterClient() {
     setHsl(rgbToHsl(r, g, b).join(", "));
   }, []);
 
-  // Init
-  if (!hsl) updateFromHex(hex);
+  // Init state from default hex
+  useEffect(() => {
+    updateFromHex(hex);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="space-y-6">
