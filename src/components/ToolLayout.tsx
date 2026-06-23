@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { UsageGate } from "./UsageGate";
 
 interface ToolLayoutProps {
   toolName: string;
@@ -30,9 +31,9 @@ export function ToolLayout({
         <p className="text-gray-400 text-base">{toolDescription}</p>
       </div>
 
-      {/* Tool Content */}
+      {/* Tool Content with Usage Gate */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
-        {children}
+        <UsageGate>{children}</UsageGate>
       </div>
     </div>
   );
